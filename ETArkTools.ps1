@@ -303,6 +303,22 @@ function Set-ArkServerScript
     }
 }
 
+function New-ArkScheduledTask
+{
+    [CmdletBinding()]
+    param(
+        [parameter(Mandatory)]
+        [String]
+        $PathToStartupScript
+    )
+    
+    $principal = New-ScheduledTaskPrincipal -UserID "NT AUTHORITY\SYSTEM" -LogonType ServiceAccount -RunLevel Highest    
+    $Trigger = New-ScheduledTaskTrigger -AtStartup
+    $Action = New-ScheduledTaskAction -Execute "$PathToStartupScript"
+
+    Register-ScheduledTask -Action $action -Trigger $trigger -TaskName 'Ark Server Startup' -Description 'Runs the Start_ArkServer.bat at server startup.' -Principal $principal
+}
+
 function Setup-ArkServer
 {
     <#
