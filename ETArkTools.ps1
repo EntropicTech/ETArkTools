@@ -3,7 +3,13 @@ function Install-SteamCMD
 {
     <#
         .SYNOPSIS
-            Downloads the SteamCMD zip to $Path, extracts the EXE and then installs SteamCMD to $Path.
+        Downloads the SteamCMD zip to $Path, extracts the EXE and then installs SteamCMD to $Path.
+
+        .PARAMETER Path
+        Specifies the path to the directory to install SteamCMD in.
+
+        .EXAMPLE
+        PS> Install-SteamCMD -Path D:\SteamCMD -Verbose
     #>
     [CmdletBinding()]
     param(
@@ -74,7 +80,16 @@ Function Install-ARKServer
 {
     <#
         .SYNOPSIS
-            Runs Install-SteamCMD to install SteamCMD at $PathToSteamCMD and then installs the ARK Server to $PathToARK.
+        Runs Install-SteamCMD to install SteamCMD at $PathToSteamCMD and then installs the ARK Server to $PathToARK.
+
+        .PARAMETER PathToSteamCMD
+        Specifies the path to the directory to install Ark in.
+
+        .PARAMETER PathToARK
+        Specifies the path to the directory to install Ark in.
+
+        .EXAMPLE
+        PS> Install-ARKServer -PathToSteamCMD D:\SteamCMD -PathToARK D:\ARK -Verbose
     #>
     [CmdletBinding()]
     param(
@@ -114,7 +129,16 @@ function Update-ARKServer
 {
     <#
         .SYNOPSIS
-            Shuts down ARK server, checks for updates, if available it installs them then it reboots.
+        Shuts down ARK server, checks for updates, if available it installs them then it reboots.
+
+        .PARAMETER PathToSteamCMD
+        Specifies the path to the directory to Update SteamCMD in.
+
+        .PARAMETER PathToARK
+        Specifies the path to the directory to Update Ark in.
+
+        .EXAMPLE
+        PS> Update-ARKServer -PathToSteamCMD D:\SteamCMD -PathToARK D:\ARK -Verbose
     #>
     [CmdletBinding()]
     param(
@@ -126,8 +150,6 @@ function Update-ARKServer
         [String]
         $PathToARK
     )
-    
-    $ErrorActionPreference = “SilentlyContinue”
 
     # Script Variables
     $PathToini = $PathToARK + '\ShooterGame\Saved\Config\WindowsServer\GameuserSettings.ini'
@@ -202,7 +224,25 @@ function Set-ArkServerScript
 {
     <#
         .SYNOPSIS
-            Creates the startup script for the Ark server.
+        Creates the startup script for the Ark server.
+
+        .PARAMETER PathToARK
+        Specifies the path to the directory Ark is installed in.
+        
+        .PARAMETER Map
+        Specifies the Map you want the Ark server to run.
+
+        .PARAMETER ServerName
+        Specifies the name of the Server.
+
+        .PARAMETER ServerPassword
+        Specifies the server password.
+
+        .PARAMETER ServerAdminPassword
+        Specifies the servers admin password.
+        
+        .EXAMPLE
+        PS> Set-ArkServerScript -PathToARK D:\ARK -Map 'TheIsland' -ServerName ETServer -ServerPassword Password123 -ServerAdminPassword Password321 -Verbose
     #>
     [CmdletBinding()]
     param(
@@ -261,4 +301,84 @@ function Set-ArkServerScript
         Write-Verbose 'Failed to import data into the Start_ARKServer.bat file. Review file manually.'
         Write-Host $_.Exception.Message -ForegroundColor Red
     }
+}
+
+function Setup-ArkServer
+{
+    <#
+        .SYNOPSIS
+        Shuts down ARK server, checks for updates, if available it installs them then it reboots.
+
+        .PARAMETER PathToSteamCMD
+        Specifies the path to the directory to install SteamCMD in.
+
+        .PARAMETER PathToARK
+        Specifies the path to the directory to install Ark in.
+        
+        .PARAMETER Map
+        Specifies the Map you want the Ark server to run.
+
+        .PARAMETER ServerName
+        Specifies the name of the Server.
+
+        .PARAMETER ServerPassword
+        Specifies the server password.
+
+        .PARAMETER ServerAdminPassword
+        Specifies the servers admin password.
+
+        .EXAMPLE
+        PS> Setup-ArkServer -PathToSteamCMD D:\SteamCMD -PathToARK D:\ARK -Verbose
+
+        .EXAMPLE
+        PS> Setup-ArkServer -PathToSteamCMD D:\SteamCMD -PathToARK D:\ARK -Map 'TheIsland' -ServerName 'DefaultServer' -ServerPassword 'Password123' -ServerAdminPassword 'Password321' -Verbose
+    #>
+    [CmdletBinding()]
+    param(
+        [parameter(Mandatory)]
+        [String]
+        $PathToSteamCMD,
+
+        [parameter(Mandatory)]
+        [String]
+        $PathToARK,
+
+        [parameter(Mandatory)]
+        [String]
+        [ValidateSet('TheIsland','Ragnarok','Valguero')]
+        $Map,
+
+        [parameter(Mandatory)]
+        [String]
+        $ServerName,
+
+        [parameter(Mandatory)]
+        [String]
+        $ServerPassword,
+
+        [parameter(Mandatory)]
+        [String]
+        $ServerAdminPassword
+    )
+
+    if(-not($Map))
+    {
+        $Map = 'TheIsland'
+    }
+    if(-not($ServerName))
+    {
+        $ServerName = 'DefaultServerName'
+    }
+    if(-not($ServerPassword))
+    {
+        $ServerPassword = 'Password123'
+    }
+    if(-not($ServerAdminPassword))
+    {
+        $ServerAdminPassword = 'Password321'
+    }
+
+    Install-ARKServer -PathToSteamCMD $PathToSteamCMD -PathToArk $PathToARK
+
+    Set-ARKServerScript -PathToArk $PathToARK -Map $Map -ServerName $ServerName -ServerPassword $ServerPassword -ServerAdminPassword $ServerAdminPassword
 }
